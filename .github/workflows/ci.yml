@@ -131,7 +131,7 @@ jobs:
         PYTHONPATH: .
     
     - name: Upload coverage artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: htmlcov/
@@ -183,7 +183,7 @@ jobs:
       run: docker save claude-code-test-2:latest | gzip > app-image.tar.gz
     
     - name: Upload deployment artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: app-image.tar.gz
