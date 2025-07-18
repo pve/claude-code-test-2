@@ -142,4 +142,4 @@ Thumbs.db
 .pre-commit-config.yaml
 
 # UV
-uv.lock
+# uv.lock should be committed for reproducible Docker builds
