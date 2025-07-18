@@ -67,6 +67,9 @@ uv run pytest
 # Check test coverage
 uv run pytest --cov=app --cov-report=term-missing
 
+# Generate coverage with XML (for Codecov)
+uv run pytest --cov=app --cov-report=term-missing --cov-report=xml
+
 # Format code
 uv run black .
 uv run isort .
@@ -225,6 +228,21 @@ claude-code-test-2/
        response = client.get('/api/users')
        assert response.status_code == 200
    ```
+
+### Running Tests with Proper Environment
+
+For integration and E2E tests, set PYTHONPATH to ensure imports work correctly:
+
+```bash
+# Run integration tests
+PYTHONPATH=. uv run pytest -m integration -v
+
+# Run E2E tests  
+PYTHONPATH=. uv run pytest -m e2e -v
+
+# Run full test suite with coverage
+PYTHONPATH=. uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=90
+```
 
 ### Environment Configuration
 
