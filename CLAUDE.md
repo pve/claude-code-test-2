@@ -62,7 +62,7 @@ uv run pytest -m e2e
 docker build -t test .
 
 # Run with port mapping
-docker run --rm -p 5000:5000 test
+docker run --rm -p 5001:5001 test
 ```
 
 ### Quality Checks
@@ -225,7 +225,7 @@ uv run pytest -m "not e2e" -v
 uv run pytest --cov=app --cov-report=term-missing
 
 # Docker validation
-docker build -t test . && docker run --rm -p 5000:5000 test
+docker build -t test . && docker run --rm -p 5001:5001 test
 ```
 
 **Environment validation**:

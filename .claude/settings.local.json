@@ -9,7 +9,10 @@
       "Bash(uv run pytest:*)",
       "Bash(PYTHONPATH=. uv run pytest -m \"not e2e\" --tb=short)",
       "Bash(cp:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(uv run detect-secrets scan:*)",
+      "Bash(PYTHONPATH=. uv run pytest tests/unit/test_utils.py::test_input_sanitization -v)",
+      "Bash(PYTHONPATH=. uv run pytest -m \"not e2e\" --cov=app --cov-report=term-missing)"
     ],
     "deny": []
   }
