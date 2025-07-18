@@ -1,5 +1,5 @@
-import os
 import multiprocessing
+import os
 
 # Server socket
 bind = f"0.0.0.0:{os.environ.get('PORT', 5001)}"
@@ -24,11 +24,13 @@ limit_request_field_size = 8190
 # Logging
 accesslog = "-"
 errorlog = "-"
-loglevel = os.environ.get('LOG_LEVEL', 'info')
-access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
+loglevel = os.environ.get("LOG_LEVEL", "info")
+access_log_format = (
+    '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
+)
 
 # Process naming
-proc_name = 'claude-code-test-2'
+proc_name = "claude-code-test-2"
 
 # Preload the application for better performance
 preload_app = True

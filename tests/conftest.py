@@ -1,5 +1,7 @@
-import pytest
 import os
+
+import pytest
+
 from app import create_app
 
 
@@ -8,13 +10,13 @@ def app():
     """Create and configure a new app instance for each test."""
     # Test configuration
     test_config = {
-        'TESTING': True,
-        'SECRET_KEY': 'test-secret-key',
-        'WTF_CSRF_ENABLED': False,
+        "TESTING": True,
+        "SECRET_KEY": "test-secret-key",
+        "WTF_CSRF_ENABLED": False,
     }
-    
+
     app = create_app(test_config)
-    
+
     with app.app_context():
         yield app
 
@@ -34,4 +36,4 @@ def runner(app):
 @pytest.fixture(scope="session")
 def is_ci():
     """Check if running in CI environment."""
-    return any([os.getenv('CI'), os.getenv('GITHUB_ACTIONS')])
+    return any([os.getenv("CI"), os.getenv("GITHUB_ACTIONS")])

@@ -10,8 +10,8 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # Stage 1: Quick validation
-  quick-validation:
+  # Stage 1: Tests and coverage (formatting/linting handled by pre-commit)
+  test-and-coverage:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -30,17 +30,8 @@ jobs:
     - name: Install dependencies
       run: uv sync --extra dev
     
-    - name: Format check (black)
-      run: uv run black --check .
-    
-    - name: Import sorting check (isort)
-      run: uv run isort --check-only .
-    
-    - name: Lint check (flake8)
-      run: uv run flake8
-    
-    - name: Security scan (detect-secrets)
-      run: uv run detect-secrets scan --baseline .secrets.baseline
+    # Note: Code formatting, linting, and security scans are handled by pre-commit hooks
+    # This ensures faster feedback and prevents poorly formatted code from reaching CI
     
     - name: Unit tests
       run: uv run pytest -m "not e2e" --cov=app --cov-report=xml --cov-report=term-missing
@@ -54,7 +45,7 @@ jobs:
   # Stage 2: Build validation
   build-validation:
     runs-on: ubuntu-latest
-    needs: quick-validation
+    needs: test-and-coverage
     steps:
     - uses: actions/checkout@v4
     
@@ -82,7 +73,7 @@ jobs:
   # Stage 3: Full testing (including E2E)
   full-testing:
     runs-on: ubuntu-latest
-    needs: [quick-validation, build-validation]
+    needs: [test-and-coverage, build-validation]
     services:
       flask-app:
         image: python:3.11-slim
@@ -147,7 +138,7 @@ jobs:
   # Stage 4: Security and quality checks
   security-quality:
     runs-on: ubuntu-latest
-    needs: quick-validation
+    needs: test-and-coverage
     steps:
     - uses: actions/checkout@v4
     

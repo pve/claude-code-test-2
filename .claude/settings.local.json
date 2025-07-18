@@ -12,7 +12,11 @@
       "Bash(docker build:*)",
       "Bash(uv run detect-secrets scan:*)",
       "Bash(PYTHONPATH=. uv run pytest tests/unit/test_utils.py::test_input_sanitization -v)",
-      "Bash(PYTHONPATH=. uv run pytest -m \"not e2e\" --cov=app --cov-report=term-missing)"
+      "Bash(PYTHONPATH=. uv run pytest -m \"not e2e\" --cov=app --cov-report=term-missing)",
+      "Bash(uv run black:*)",
+      "Bash(PYTHONPATH=. uv run pytest -m \"not e2e\" --tb=short -q)",
+      "Bash(uv run isort:*)",
+      "Bash(uv run:*)"
     ],
     "deny": []
   }

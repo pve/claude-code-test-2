@@ -1,4 +1,5 @@
 import pytest
+
 from app.models.user import User
 
 
@@ -10,13 +11,13 @@ def test_user_creation():
     assert user.email == "john@example.com"
 
 
-@pytest.mark.unit  
+@pytest.mark.unit
 def test_user_validation():
     """Test user input validation."""
     # Valid user
     user = User("Jane Smith", "jane@example.com")
     assert user.is_valid()
-    
+
     # Invalid email
     user_invalid = User("Bob", "invalid-email")
     assert not user_invalid.is_valid()
