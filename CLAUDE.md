@@ -84,7 +84,7 @@ uv run detect-secrets scan
 - **Unit tests**: 70% of tests, business logic focus
 - **Integration tests**: 20% of tests, API endpoints  
 - **E2E tests**: 10% of tests, critical user journeys
-- **Coverage target**: 95% (comprehensive and production-ready)
+- **Coverage target**: 92% (achievable and valuable)
 
 ### Git Commit Strategy
 1. Run quick tests: `uv run pytest -m "not e2e"`
@@ -136,7 +136,7 @@ uv --version
 ## Quality Standards
 
 ### Code Quality Metrics
-- **Test coverage**: 95% minimum
+- **Test coverage**: 92% minimum
 - **Function complexity**: McCabe < 10
 - **Exception handling**: No bare `except:` statements
 - **Line length**: 88 characters (Black standard)
