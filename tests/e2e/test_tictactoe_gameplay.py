@@ -22,11 +22,10 @@ def driver(is_ci):
     """Create WebDriver instance."""
     chrome_options = Options()
     
-    if is_ci:
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-    
+    # Always run headless for consistency and CI compatibility
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
     

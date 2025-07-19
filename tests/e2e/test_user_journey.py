@@ -106,16 +106,12 @@ def chrome_driver(is_ci):
     """Create Chrome WebDriver with appropriate options."""
     chrome_options = Options()
 
-    if is_ci:
-        # CI environment configuration
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--window-size=1920,1080")
-    else:
-        # Local development configuration
-        chrome_options.add_argument("--window-size=1280,720")
+    # Always run headless for consistency and CI compatibility
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
 
     # Common options
     chrome_options.add_argument("--disable-web-security")
