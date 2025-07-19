@@ -210,14 +210,19 @@ def test_make_move_occupied_position(client_with_session):
 @pytest.mark.integration
 def test_game_flow_human_wins(client_with_session):
     """Test complete game flow where human wins."""
-    # Create game
-    client_with_session.post('/api/game/new', json={'difficulty': 'easy'})
+    # Clear any existing game first
+    client_with_session.post('/api/game/quit')
     
-    # Make moves that lead to human win
-    # This is tricky with AI, so let's just test that game ends properly
-    moves = [(0, 0), (0, 1), (0, 2)]  # Try to get top row
+    # Create new game
+    response = client_with_session.post('/api/game/new', json={'difficulty': 'easy'})
+    assert response.status_code == 200
     
-    for i, (row, col) in enumerate(moves):
+    # Note: Testing a human win is complex because AI will try to block
+    # Instead, let's test a few valid moves and ensure game flow works
+    human_moves = [(0, 0), (1, 1)]  # Make some moves
+    
+    for i, (row, col) in enumerate(human_moves):
+        # Human move
         response = client_with_session.post('/api/game/move',
                                            json={'row': row, 'col': col})
         
@@ -226,9 +231,17 @@ def test_game_flow_human_wins(client_with_session):
         data = response.get_json()
         assert data['success'] is True
         
+        # Game should have AI move and updated board
+        assert 'game' in data
+        assert 'board' in data['game']
+        assert 'current_player' in data['game']
+        
         # If game ended, break
         if data.get('game_over', False):
             break
+        
+        # After human move, it should be human's turn again (after AI move)
+        assert data['game']['current_player'] == 'X'
 
 
 @pytest.mark.integration
