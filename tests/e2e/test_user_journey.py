@@ -32,8 +32,8 @@ class HomePage(BasePage):
     """Home page object."""
 
     # Locators
-    HEALTH_LINK = (By.LINK_TEXT, "Health Check")
-    API_STATUS_LINK = (By.LINK_TEXT, "API Status")
+    HEALTH_LINK = (By.LINK_TEXT, "Health")
+    ABOUT_LINK = (By.LINK_TEXT, "About")
     WELCOME_HEADING = (By.TAG_NAME, "h2")
 
     def get_welcome_text(self):
@@ -42,8 +42,8 @@ class HomePage(BasePage):
     def click_health_check(self):
         self.click_element(self.HEALTH_LINK)
 
-    def click_api_status(self):
-        self.click_element(self.API_STATUS_LINK)
+    def click_about(self):
+        self.click_element(self.ABOUT_LINK)
 
 
 @pytest.fixture(scope="session")
@@ -52,10 +52,53 @@ def is_ci():
     return any([os.getenv("CI"), os.getenv("GITHUB_ACTIONS")])
 
 
-@pytest.fixture(scope="session")
-def app_url():
-    """Get application URL for testing."""
-    return os.environ.get("TEST_URL", "http://127.0.0.1:5001")
+@pytest.fixture
+def user_journey_server():
+    """Start the Flask application for testing."""
+    import socket
+    import time
+    import requests
+    from app import create_app
+    import threading
+    
+    # Find an available port (avoiding 5000 and 5001)
+    def find_free_port():
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('127.0.0.1', 0))
+            s.listen(1)
+            port = s.getsockname()[1]
+        return port
+    
+    port = find_free_port()
+    
+    # Create test app
+    app = create_app({
+        'TESTING': True,
+        'SECRET_KEY': 'test-secret-user-journey'
+    })
+    
+    # Start the server in a separate thread
+    def run_server():
+        app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False, threaded=True)
+    
+    server_thread = threading.Thread(target=run_server, daemon=True)
+    server_thread.start()
+    
+    # Wait for server to start
+    base_url = f'http://127.0.0.1:{port}'
+    for _ in range(30):
+        try:
+            response = requests.get(f'{base_url}/health', timeout=1)
+            if response.status_code == 200:
+                break
+        except:
+            time.sleep(0.5)
+    else:
+        pytest.skip("Could not start test server")
+    
+    yield base_url
+
+
 
 
 @pytest.fixture
@@ -90,26 +133,26 @@ def chrome_driver(is_ci):
 
 
 @pytest.mark.e2e
-def test_home_page_loads(chrome_driver, app_url):
+def test_home_page_loads(chrome_driver, user_journey_server):
     """Test that the home page loads successfully."""
     driver = chrome_driver
-    driver.get(app_url)
+    driver.get(user_journey_server)
 
     home_page = HomePage(driver)
 
     # Verify page title
-    assert "Claude Code Test 2" in home_page.get_title()
+    assert "Tic-Tac-Toe Game" in home_page.get_title()
 
     # Verify welcome message
     welcome_text = home_page.get_welcome_text()
-    assert "Welcome to Claude Code Test 2" in welcome_text
+    assert "Tic-Tac-Toe" in welcome_text
 
 
 @pytest.mark.e2e
-def test_health_check_navigation(chrome_driver, app_url):
+def test_health_check_navigation(chrome_driver, user_journey_server):
     """Test navigation to health check endpoint."""
     driver = chrome_driver
-    driver.get(app_url)
+    driver.get(user_journey_server)
 
     home_page = HomePage(driver)
 
@@ -126,30 +169,29 @@ def test_health_check_navigation(chrome_driver, app_url):
 
 
 @pytest.mark.e2e
-def test_api_status_navigation(chrome_driver, app_url):
-    """Test navigation to API status endpoint."""
+def test_about_navigation(chrome_driver, user_journey_server):
+    """Test navigation to about page."""
     driver = chrome_driver
-    driver.get(app_url)
+    driver.get(user_journey_server)
 
     home_page = HomePage(driver)
 
-    # Click API status link
-    home_page.click_api_status()
+    # Click about link
+    home_page.click_about()
 
-    # Verify we're on the API status endpoint
-    assert "/api/status" in driver.current_url
+    # Verify we're on the welcome page
+    assert "/welcome" in driver.current_url
 
-    # Verify JSON response is displayed
+    # Verify welcome page content is displayed
     page_source = driver.page_source
-    assert "api_version" in page_source
-    assert "operational" in page_source
+    assert "Welcome" in page_source
 
 
 @pytest.mark.e2e
-def test_responsive_layout(chrome_driver, app_url):
+def test_responsive_layout(chrome_driver, user_journey_server):
     """Test responsive design on different screen sizes."""
     driver = chrome_driver
-    driver.get(app_url)
+    driver.get(user_journey_server)
 
     # Test mobile size
     driver.set_window_size(375, 667)
@@ -157,28 +199,28 @@ def test_responsive_layout(chrome_driver, app_url):
 
     # Verify page still loads and content is accessible
     welcome_text = home_page.get_welcome_text()
-    assert "Welcome to Claude Code Test 2" in welcome_text
+    assert "Tic-Tac-Toe" in welcome_text
 
     # Test desktop size
     driver.set_window_size(1920, 1080)
 
     # Verify layout still works
     welcome_text = home_page.get_welcome_text()
-    assert "Welcome to Claude Code Test 2" in welcome_text
+    assert "Tic-Tac-Toe" in welcome_text
 
 
 @pytest.mark.e2e
-def test_full_user_journey(chrome_driver, app_url):
+def test_full_user_journey(chrome_driver, user_journey_server):
     """Test complete user journey through the application."""
     driver = chrome_driver
-    driver.get(app_url)
+    driver.get(user_journey_server)
 
     home_page = HomePage(driver)
 
     # Step 1: Verify home page
-    assert "Claude Code Test 2" in home_page.get_title()
+    assert "Tic-Tac-Toe Game" in home_page.get_title()
     welcome_text = home_page.get_welcome_text()
-    assert "Welcome to Claude Code Test 2" in welcome_text
+    assert "Tic-Tac-Toe" in welcome_text
 
     # Step 2: Check health endpoint
     home_page.click_health_check()
@@ -187,14 +229,14 @@ def test_full_user_journey(chrome_driver, app_url):
 
     # Step 3: Navigate back to home
     driver.back()
-    assert app_url in driver.current_url
+    assert user_journey_server in driver.current_url
 
-    # Step 4: Check API status
+    # Step 4: Check about page
     home_page = HomePage(driver)  # Reinitialize after navigation
-    home_page.click_api_status()
-    assert "/api/status" in driver.current_url
-    assert "operational" in driver.page_source
+    home_page.click_about()
+    assert "/welcome" in driver.current_url
+    assert "Welcome" in driver.page_source
 
     # Step 5: Navigate back to home again
     driver.back()
-    assert app_url in driver.current_url
+    assert user_journey_server in driver.current_url
