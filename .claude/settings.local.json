@@ -16,7 +16,18 @@
       "Bash(uv run black:*)",
       "Bash(PYTHONPATH=. uv run pytest -m \"not e2e\" --tb=short -q)",
       "Bash(uv run isort:*)",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "Bash(PYTHONPATH=. uv run pytest -m \"not e2e\" --cov=app --cov-report=xml --cov-report=term-missing)",
+      "Bash(docker run:*)",
+      "Bash(curl:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(PYTHONPATH=. uv run pytest -m integration -v)",
+      "Bash(PYTHONPATH=. uv run pytest -m e2e -v)",
+      "Bash(PYTHONPATH=. uv run pytest --cov=app --cov-report=html --cov-report=term-missing --cov-fail-under=90)",
+      "Bash(ls:*)",
+      "Bash(uv lock:*)",
+      "Bash(PYTHONPATH=. uv run pytest --cov=app --cov-report=term-missing)"
     ],
     "deny": []
   }
