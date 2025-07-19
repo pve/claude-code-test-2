@@ -27,7 +27,22 @@
       "Bash(PYTHONPATH=. uv run pytest --cov=app --cov-report=html --cov-report=term-missing --cov-fail-under=90)",
       "Bash(ls:*)",
       "Bash(uv lock:*)",
-      "Bash(PYTHONPATH=. uv run pytest --cov=app --cov-report=term-missing)"
+      "Bash(PYTHONPATH=. uv run pytest --cov=app --cov-report=term-missing)",
+      "Bash(PYTHONPATH=. uv run pytest tests/unit/test_tictactoe_model.py -v)",
+      "Bash(PYTHONPATH=. uv run pytest tests/unit/test_tictactoe_model.py::test_complete_game_flow_draw -v)",
+      "Bash(PYTHONPATH=. uv run pytest tests/unit/test_tictactoe_model.py::test_complete_game_flow_draw -v -s)",
+      "Bash(PYTHONPATH=. uv run pytest:*)",
+      "Bash(PYTHONPATH=. uv run pytest tests/unit/test_ai_algorithms.py::test_medium_difficulty_random_fallback -v)",
+      "Bash(PYTHONPATH=. uv run pytest tests/integration/test_game_routes.py -v)",
+      "Bash(PYTHONPATH=. uv run pytest tests/integration/test_game_routes.py::test_new_game_default_difficulty -v)",
+      "Bash(PYTHONPATH=. uv run python -c \"\nfrom app import create_app\napp = create_app()\nprint(''Routes:'')\nfor rule in app.url_map.iter_rules():\n    print(f''{rule.rule} -> {rule.endpoint}'')\n\")",
+      "Bash(find:*)",
+      "Bash(PYTHONPATH=. uv run python -c \"\nimport pytest\n# Test creating a game first\nfrom app import create_app\n\napp = create_app({\n    ''TESTING'': True,\n    ''SECRET_KEY'': ''test-secret-key'',\n    ''WTF_CSRF_ENABLED'': False,\n})\n\nclient = app.test_client()\n\nprint(''Creating game...'')\nresponse = client.post(''/api/game/new'')\nprint(f''New game response: {response.status_code}'')\nif response.status_code == 200:\n    print(''Game data:'', response.get_json())\n\nprint(''Making move...'')\nresponse = client.post(''/api/game/move'', json={''row'': 0, ''col'': 0})\nprint(f''Move response: {response.status_code}'')\nif response.status_code != 200:\n    print(''Error:'', response.get_data(as_text=True))\n\")",
+      "Bash(PYTHONPATH=. uv run python -c \"\nfrom app import create_app\n\napp = create_app({\n    ''TESTING'': True,\n    ''SECRET_KEY'': ''test-secret-key'',\n    ''WTF_CSRF_ENABLED'': False,\n})\n\nclient = app.test_client()\n\nprint(''Creating game...'')\nresponse = client.post(''/api/game/new'')\nprint(f''New game response: {response.status_code}'')\nif response.status_code == 200:\n    print(''Game data:'', response.get_json())\n\nprint(''Making move...'')\nresponse = client.post(''/api/game/move'', json={''row'': 0, ''col'': 0})\nprint(f''Move response: {response.status_code}'')\nif response.status_code != 200:\n    print(''Error:'', response.get_data(as_text=True))\nelse:\n    print(''Move data:'', response.get_json())\n\")",
+      "Bash(PYTHONPATH=. uv run python -c \"\nfrom app import create_app\n\napp = create_app({\n    ''TESTING'': True,\n    ''SECRET_KEY'': ''test-secret-key'',\n    ''WTF_CSRF_ENABLED'': False,\n})\n\nclient = app.test_client()\n\nprint(''Creating game...'')\nresponse = client.post(''/api/game/new'')\nprint(f''New game response: {response.status_code}'')\nif response.status_code == 200:\n    print(''Game data:'', response.get_json())\n\nprint(''Making move...'')\nresponse = client.post(''/api/game/move'', json={''row'': 0, ''col'': 0})\nprint(f''Move response: {response.status_code}'')\nif response.status_code != 200:\n    print(''Error:'', response.get_data(as_text=True))\nelse:\n    print(''Move data:'', response.get_json())\n\")",
+      "Bash(PYTHONPATH=. uv run python -c \"\nfrom app import create_app\n\napp = create_app({\n    ''TESTING'': True,\n    ''SECRET_KEY'': ''test-secret-key'',\n    ''WTF_CSRF_ENABLED'': False,\n})\n\nclient = app.test_client()\n\nprint(''Creating game...'')\nresponse = client.post(''/api/game/new'')\nprint(f''New game response: {response.status_code}'')\n\nprint(''Making move...'')\nresponse = client.post(''/api/game/move'', json={''row'': 0, ''col'': 0})\nprint(f''Move response: {response.status_code}'')\nprint(f''Response data: {response.get_data(as_text=True)}'')\n\")",
+      "Bash(PYTHONPATH=. uv run python -c:* )",
+      "Bash(PYTHONPATH=. uv run python -c \"\nfrom app import create_app\napp = create_app()\nprint(''Flask app created successfully!'')\nprint(''Available routes:'')\nfor rule in app.url_map.iter_rules():\n    if rule.endpoint != ''static'':\n        print(f''  {rule.rule} -> {rule.endpoint}'')\n\")"
     ],
     "deny": []
   }

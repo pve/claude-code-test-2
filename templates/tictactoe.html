@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Tic-Tac-Toe Game{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tictactoe.css') }}">
+
+<div class="game-header">
+    <h2>Tic-Tac-Toe</h2>
+    <nav class="game-nav">
+        <a href="{{ url_for('main.welcome') }}" class="nav-link">About</a>
+        <a href="{{ url_for('main.health_check') }}" class="nav-link">Health</a>
+    </nav>
+</div>
+
+<div class="game-container">
+    <!-- Game Controls -->
+    <div class="game-controls">
+        <div class="difficulty-selector">
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+        
+        <div class="game-buttons">
+            <button id="new-game-btn" class="btn btn-primary">New Game</button>
+            <button id="reset-game-btn" class="btn btn-secondary">Reset</button>
+            <button id="quit-game-btn" class="btn btn-danger">Quit</button>
+        </div>
+    </div>
+
+    <!-- Game Status -->
+    <div class="game-status">
+        <div id="game-message" class="message">Welcome! Start a new game to begin.</div>
+        <div class="player-info">
+            <div class="player">
+                <span class="player-label">You:</span>
+                <span class="player-symbol">X</span>
+            </div>
+            <div class="player">
+                <span class="player-label">AI:</span>
+                <span class="player-symbol">O</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Board -->
+    <div class="game-board-container">
+        <div id="game-board" class="game-board">
+            <div class="cell" data-row="0" data-col="0"></div>
+            <div class="cell" data-row="0" data-col="1"></div>
+            <div class="cell" data-row="0" data-col="2"></div>
+            <div class="cell" data-row="1" data-col="0"></div>
+            <div class="cell" data-row="1" data-col="1"></div>
+            <div class="cell" data-row="1" data-col="2"></div>
+            <div class="cell" data-row="2" data-col="0"></div>
+            <div class="cell" data-row="2" data-col="1"></div>
+            <div class="cell" data-row="2" data-col="2"></div>
+        </div>
+    </div>
+
+    <!-- Game History -->
+    <div class="game-history">
+        <h3>Move History</h3>
+        <div id="move-history" class="move-list">
+            <div class="no-moves">No moves yet</div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">AI is thinking...</div>
+</div>
+
+<!-- Error Modal -->
+<div id="error-modal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Error</h3>
+        <p id="error-message"></p>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='js/tictactoe.js') }}"></script>
+{% endblock %}

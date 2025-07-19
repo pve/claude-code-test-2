@@ -5,8 +5,20 @@ main_bp = Blueprint("main", __name__)
 
 @main_bp.route("/")
 def index():
-    """Home page route."""
-    return render_template("index.html")
+    """Main page with tic-tac-toe game."""
+    return render_template("tictactoe.html")
+
+
+@main_bp.route("/tictactoe")
+def tictactoe():
+    """Tic-tac-toe game page (alias for backward compatibility)."""
+    return render_template("tictactoe.html")
+
+
+@main_bp.route("/welcome")
+def welcome():
+    """Original welcome page."""
+    return render_template("welcome.html")
 
 
 @main_bp.route("/health")

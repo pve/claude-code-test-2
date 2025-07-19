@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Claude Code Test 2{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Welcome to Claude Code Test 2</h2>
+    <p>This is a Flask application following CLAUDE.md development standards.</p>
+    
+    <div class="features">
+        <h3>Features</h3>
+        <ul>
+            <li>Flask Application Factory Pattern</li>
+            <li>Blueprint Organization</li>
+            <li>Comprehensive Testing (Unit, Integration, E2E)</li>
+            <li>UV Dependency Management</li>
+            <li>Docker Support</li>
+            <li>Quality Tools (Black, Isort, Flake8)</li>
+        </ul>
+    </div>
+    
+    <div class="api-info">
+        <h3>API Endpoints</h3>
+        <ul>
+            <li><a href="{{ url_for('main.health_check') }}">Health Check</a></li>
+            <li><a href="{{ url_for('main.api_status') }}">API Status</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

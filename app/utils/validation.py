@@ -73,3 +73,26 @@ def validate_string_length(string, min_length=0, max_length=255):
         return False
 
     return min_length <= len(string) <= max_length
+
+
+def validate_json_input(data):
+    """
+    Validate and sanitize JSON input data.
+    
+    Args:
+        data: JSON data to validate (dict or None)
+        
+    Returns:
+        dict: Validated and sanitized data
+        
+    Raises:
+        ValueError: If data is not valid JSON object
+    """
+    if data is None:
+        return {}
+    
+    if not isinstance(data, dict):
+        raise ValueError("Invalid JSON: must be an object")
+    
+    # Return a copy to avoid modifying original
+    return dict(data)

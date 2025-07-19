@@ -47,4 +47,16 @@ def create_app(config=None):
 
     register_blueprints(app)
 
+    # Global error handlers  
+    @app.errorhandler(404)
+    def not_found(error):
+        """Handle 404 errors globally."""
+        from flask import jsonify, request
+        if request.path.startswith('/api/'):
+            return jsonify({
+                'error': 'Endpoint not found',
+                'message': 'The requested API endpoint does not exist'
+            }), 404
+        return error
+
     return app
