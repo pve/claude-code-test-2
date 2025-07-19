@@ -29,15 +29,15 @@ def test_api_status_endpoint_response(client):
 
 @pytest.mark.integration
 def test_index_page_content(client):
-    """Test index page contains expected content."""
+    """Test index page contains expected tic-tac-toe game content."""
     response = client.get("/")
     assert response.status_code == 200
 
-    # Check for key content
-    assert b"Welcome to Claude Code Test 2" in response.data
-    assert b"Flask Application Factory Pattern" in response.data
-    assert b"Health Check" in response.data
-    assert b"API Status" in response.data
+    # Check for tic-tac-toe game content
+    assert b"Tic-Tac-Toe Game" in response.data
+    assert b"game-board" in response.data
+    assert b"difficulty-select" in response.data
+    assert b"new-game-btn" in response.data
 
 
 @pytest.mark.integration

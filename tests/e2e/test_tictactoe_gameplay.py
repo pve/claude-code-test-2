@@ -40,10 +40,21 @@ def driver(is_ci):
 @pytest.fixture
 def live_server():
     """Start the Flask application for testing."""
-    import subprocess
+    import socket
     import time
     import requests
     from app import create_app
+    import threading
+    
+    # Find an available port (avoiding 5000)
+    def find_free_port():
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('127.0.0.1', 0))
+            s.listen(1)
+            port = s.getsockname()[1]
+        return port
+    
+    port = find_free_port()
     
     # Create test app
     app = create_app({
@@ -51,26 +62,26 @@ def live_server():
         'SECRET_KEY': 'test-secret-e2e'
     })
     
-    # Start the server in a separate process
-    import threading
-    
+    # Start the server in a separate thread
     def run_server():
-        app.run(host='127.0.0.1', port=5000, debug=False, use_reloader=False)
+        app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False, threaded=True)
     
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     
     # Wait for server to start
+    base_url = f'http://127.0.0.1:{port}'
     for _ in range(30):
         try:
-            requests.get('http://127.0.0.1:5000/health', timeout=1)
-            break
+            response = requests.get(f'{base_url}/health', timeout=1)
+            if response.status_code == 200:
+                break
         except:
             time.sleep(0.5)
     else:
         pytest.skip("Could not start test server")
     
-    yield 'http://127.0.0.1:5000'
+    yield base_url
 
 
 @pytest.mark.e2e
@@ -102,7 +113,7 @@ def test_complete_game_flow(driver, live_server):
     new_game_btn.click()
     
     # Wait for game to start
-    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn"))
+    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn!"))
     
     # Make the first move (click center cell)
     center_cell = driver.find_element(By.CSS_SELECTOR, '[data-row="1"][data-col="1"]')
@@ -148,7 +159,7 @@ def test_difficulty_selection(driver, live_server):
     new_game_btn.click()
     
     # Wait for game to start
-    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn"))
+    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn!"))
     
     # Verify difficulty selector is disabled during game
     assert not driver.find_element(By.ID, "difficulty").is_enabled()
@@ -173,7 +184,7 @@ def test_game_controls(driver, live_server):
     new_game_btn.click()
     
     # Wait for game to start
-    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn"))
+    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn!"))
     
     # Now reset and quit should be enabled
     assert reset_btn.is_enabled()
