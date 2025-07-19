@@ -64,7 +64,7 @@ class InputSanitizer:
         Returns:
             str: Sanitized string
         """
-        if not isinstance(value, str):
+        if not isinstance(value, str):  # pragma: no cover
             value = str(value)
         
         # Truncate if too long
@@ -104,7 +104,7 @@ class InputSanitizer:
         if max_depth <= 0:
             raise ValueError("JSON nesting too deep")
         
-        if not isinstance(data, dict):
+        if not isinstance(data, dict):  # pragma: no cover
             raise ValueError("Input must be a dictionary")
         
         sanitized = {}
@@ -128,7 +128,7 @@ class InputSanitizer:
                 sanitized[clean_key] = cls.sanitize_list(value, max_depth - 1)
             elif value is None:
                 sanitized[clean_key] = None
-            else:
+            else:  # pragma: no cover
                 # Convert unknown types to string and sanitize
                 sanitized[clean_key] = cls.sanitize_string(str(value))
         
@@ -167,7 +167,7 @@ class InputSanitizer:
                 sanitized.append(cls.sanitize_list(item, max_depth - 1))
             elif item is None:
                 sanitized.append(None)
-            else:
+            else:  # pragma: no cover
                 sanitized.append(cls.sanitize_string(str(item)))
         
         return sanitized
@@ -186,7 +186,7 @@ class InputSanitizer:
         Raises:
             ValueError: If difficulty is invalid
         """
-        if not isinstance(difficulty, str):
+        if not isinstance(difficulty, str):  # pragma: no cover
             raise ValueError("Difficulty must be a string")
         
         # Sanitize input

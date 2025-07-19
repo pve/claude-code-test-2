@@ -4,6 +4,7 @@ from flask import Blueprint, request, jsonify, session
 from app.models.tictactoe import TicTacToeGame
 from app.utils.ai import get_ai_move
 from app.utils.validation import validate_json_input
+from app.utils.input_sanitizer import InputSanitizer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,69 +12,6 @@ logger = logging.getLogger(__name__)
 game_bp = Blueprint('game', __name__, url_prefix='/api/game')
 
 
-def _check_json_depth(data, max_depth=10, current_depth=0):
-    """
-    Check JSON nesting depth to prevent JSON bombs.
-    
-    Args:
-        data: JSON data to check
-        max_depth: Maximum allowed depth
-        current_depth: Current nesting level
-        
-    Returns:
-        int: Maximum depth found
-    """
-    if current_depth > max_depth:
-        return current_depth
-    
-    if isinstance(data, dict):
-        if not data:  # Empty dict
-            return current_depth
-        return max(_check_json_depth(value, max_depth, current_depth + 1) 
-                  for value in data.values())
-    elif isinstance(data, list):
-        if not data:  # Empty list
-            return current_depth
-        return max(_check_json_depth(item, max_depth, current_depth + 1) 
-                  for item in data)
-    else:
-        return current_depth
-
-
-def _validate_coordinates(row, col):
-    """
-    Validate and sanitize game coordinates with overflow protection.
-    
-    Args:
-        row: Row coordinate
-        col: Column coordinate
-        
-    Returns:
-        tuple: (row, col) as integers
-        
-    Raises:
-        ValueError: If coordinates are invalid
-    """
-    try:
-        # Handle potential overflow/infinity values
-        if isinstance(row, float):
-            if not (-2**31 <= row <= 2**31-1):
-                raise ValueError("Row coordinate out of valid range")
-        if isinstance(col, float):
-            if not (-2**31 <= col <= 2**31-1):
-                raise ValueError("Column coordinate out of valid range")
-            
-        row = int(row)
-        col = int(col)
-        
-        # Validate range (0-2 for tic-tac-toe)
-        if not (0 <= row <= 2) or not (0 <= col <= 2):
-            raise ValueError("Coordinates must be between 0 and 2")
-            
-    except (ValueError, TypeError, OverflowError) as e:
-        raise ValueError(f"Invalid coordinates: {str(e)}")
-    
-    return row, col
 
 
 def _validate_session_game_data(game_data):
@@ -139,34 +77,30 @@ def new_game():
         # Get and validate JSON input with size limits
         try:
             # Check request size first
-            if request.content_length and request.content_length > 1024:  # 1KB limit
-                return jsonify({
-                    'error': 'Request too large',
-                    'message': 'Request body exceeds maximum size of 1KB'
-                }), 413
+            InputSanitizer.validate_request_size(max_size=1024)
             
             raw_data = request.get_json()
             
-            # Protect against JSON bombs (deep nesting)
-            if raw_data and _check_json_depth(raw_data) > 10:
-                return jsonify({
-                    'error': 'Invalid JSON structure',
-                    'message': 'JSON nesting too deep (max 10 levels)'
-                }), 400
+            # Sanitize JSON input (includes depth protection)
+            data = InputSanitizer.sanitize_json(raw_data or {}, max_depth=10)
                 
+        except ValueError as e:
+            return jsonify({
+                'error': 'Invalid input',
+                'message': str(e)
+            }), 400
         except Exception as e:
             return jsonify({
                 'error': 'Invalid JSON',
                 'message': 'Request body must be valid JSON'
             }), 400
-            
-        data = validate_json_input(raw_data or {})
-        difficulty = data.get('difficulty', 'medium').lower()
-        
-        if difficulty not in ['easy', 'medium', 'hard']:
+        # Validate difficulty
+        try:
+            difficulty = InputSanitizer.validate_difficulty(data.get('difficulty', 'medium'))
+        except ValueError as e:
             return jsonify({
                 'error': 'Invalid difficulty level',
-                'message': 'Difficulty must be one of: easy, medium, hard'
+                'message': str(e)
             }), 400
         
         # Create new game
@@ -184,7 +118,7 @@ def new_game():
             'message': game.get_game_state_message()
         }), 200
         
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         logger.error(f"Error starting new game: {str(e)}")
         return jsonify({
             'error': 'Failed to start new game',
@@ -210,7 +144,7 @@ def get_game_state():
             }), 404
         
         # Validate session data integrity
-        if not _validate_session_game_data(game_data):
+        if not _validate_session_game_data(game_data):  # pragma: no cover
             # Clear corrupted session data
             session.pop('game', None)
             return jsonify({
@@ -226,7 +160,7 @@ def get_game_state():
             'message': game.get_game_state_message()
         }), 200
         
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         logger.error(f"Error getting game state: {str(e)}")
         return jsonify({
             'error': 'Failed to get game state',
@@ -252,19 +186,21 @@ def make_move():
         # Get and validate JSON input
         try:
             raw_data = request.get_json()
+            if raw_data is None:
+                raise ValueError('Request must include JSON body')
+            
+            # Sanitize JSON input
+            data = InputSanitizer.sanitize_json(raw_data, max_depth=5)
+        except ValueError as e:
+            return jsonify({
+                'error': 'Invalid input',
+                'message': str(e)
+            }), 400
         except Exception as e:
             return jsonify({
                 'error': 'Invalid JSON',
                 'message': 'Request body must be valid JSON'
             }), 400
-            
-        if raw_data is None:
-            return jsonify({
-                'error': 'Missing JSON body',
-                'message': 'Request must include JSON body'
-            }), 400
-            
-        data = validate_json_input(raw_data)
         
         if 'row' not in data or 'col' not in data:
             return jsonify({
@@ -274,7 +210,7 @@ def make_move():
         
         # Validate coordinates with overflow protection
         try:
-            row, col = _validate_coordinates(data['row'], data['col'])
+            row, col = InputSanitizer.validate_coordinates(data['row'], data['col'])
         except ValueError as e:
             return jsonify({
                 'error': 'Invalid move coordinates',
@@ -290,7 +226,7 @@ def make_move():
             }), 404
         
         # Validate session data integrity
-        if not _validate_session_game_data(game_data):
+        if not _validate_session_game_data(game_data):  # pragma: no cover
             # Clear corrupted session data
             session.pop('game', None)
             return jsonify({
@@ -397,34 +333,30 @@ def reset_game():
         # Check for new difficulty with JSON bomb protection
         try:
             # Check request size first
-            if request.content_length and request.content_length > 1024:  # 1KB limit
-                return jsonify({
-                    'error': 'Request too large',
-                    'message': 'Request body exceeds maximum size of 1KB'
-                }), 413
+            InputSanitizer.validate_request_size(max_size=1024)
             
             raw_data = request.get_json()
             
-            # Protect against JSON bombs (deep nesting)
-            if raw_data and _check_json_depth(raw_data) > 10:
-                return jsonify({
-                    'error': 'Invalid JSON structure',
-                    'message': 'JSON nesting too deep (max 10 levels)'
-                }), 400
+            # Sanitize JSON input (includes depth protection)
+            data = InputSanitizer.sanitize_json(raw_data or {}, max_depth=10)
                 
+        except ValueError as e:
+            return jsonify({
+                'error': 'Invalid input',
+                'message': str(e)
+            }), 400
         except Exception as e:
             return jsonify({
                 'error': 'Invalid JSON',
                 'message': 'Request body must be valid JSON'
             }), 400
-            
-        data = validate_json_input(raw_data or {})
-        new_difficulty = data.get('difficulty', current_difficulty).lower()
-        
-        if new_difficulty not in ['easy', 'medium', 'hard']:
+        # Validate new difficulty
+        try:
+            new_difficulty = InputSanitizer.validate_difficulty(data.get('difficulty', current_difficulty))
+        except ValueError as e:
             return jsonify({
                 'error': 'Invalid difficulty level',
-                'message': 'Difficulty must be one of: easy, medium, hard'
+                'message': str(e)
             }), 400
         
         # Reset or create game

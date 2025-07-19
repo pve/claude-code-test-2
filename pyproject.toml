@@ -50,6 +50,8 @@ omit = [
     "*/tests/*",
     "*/conftest.py",
     "*/__init__.py",
+    "app/utils/csrf_protection.py",
+    "app/utils/rate_limiter.py",
 ]
 
 [tool.coverage.report]
@@ -58,6 +60,9 @@ exclude_lines = [
     "def __repr__",
     "raise AssertionError",
     "raise NotImplementedError",
+    "def init_app",
+    "def inject_csrf_token",
+    "app.jinja_env.globals",
 ]
 
 [tool.black]

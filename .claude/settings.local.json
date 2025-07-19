@@ -47,7 +47,8 @@
       "Bash(gh run view:*)",
       "Bash(PYTHONPATH=. uv run python:*)",
       "Bash(gh run view:*)",
-      "Bash(gh run watch:*)"
+      "Bash(gh run watch:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
