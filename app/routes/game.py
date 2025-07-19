@@ -11,6 +11,117 @@ logger = logging.getLogger(__name__)
 game_bp = Blueprint('game', __name__, url_prefix='/api/game')
 
 
+def _check_json_depth(data, max_depth=10, current_depth=0):
+    """
+    Check JSON nesting depth to prevent JSON bombs.
+    
+    Args:
+        data: JSON data to check
+        max_depth: Maximum allowed depth
+        current_depth: Current nesting level
+        
+    Returns:
+        int: Maximum depth found
+    """
+    if current_depth > max_depth:
+        return current_depth
+    
+    if isinstance(data, dict):
+        if not data:  # Empty dict
+            return current_depth
+        return max(_check_json_depth(value, max_depth, current_depth + 1) 
+                  for value in data.values())
+    elif isinstance(data, list):
+        if not data:  # Empty list
+            return current_depth
+        return max(_check_json_depth(item, max_depth, current_depth + 1) 
+                  for item in data)
+    else:
+        return current_depth
+
+
+def _validate_coordinates(row, col):
+    """
+    Validate and sanitize game coordinates with overflow protection.
+    
+    Args:
+        row: Row coordinate
+        col: Column coordinate
+        
+    Returns:
+        tuple: (row, col) as integers
+        
+    Raises:
+        ValueError: If coordinates are invalid
+    """
+    try:
+        # Handle potential overflow/infinity values
+        if isinstance(row, float):
+            if not (-2**31 <= row <= 2**31-1):
+                raise ValueError("Row coordinate out of valid range")
+        if isinstance(col, float):
+            if not (-2**31 <= col <= 2**31-1):
+                raise ValueError("Column coordinate out of valid range")
+            
+        row = int(row)
+        col = int(col)
+        
+        # Validate range (0-2 for tic-tac-toe)
+        if not (0 <= row <= 2) or not (0 <= col <= 2):
+            raise ValueError("Coordinates must be between 0 and 2")
+            
+    except (ValueError, TypeError, OverflowError) as e:
+        raise ValueError(f"Invalid coordinates: {str(e)}")
+    
+    return row, col
+
+
+def _validate_session_game_data(game_data):
+    """
+    Validate session game data for integrity.
+    
+    Args:
+        game_data: Game data from session
+        
+    Returns:
+        bool: True if data is valid
+    """
+    if not isinstance(game_data, dict):
+        return False
+    
+    # Check required fields
+    required_fields = ['board', 'current_player', 'game_status', 'difficulty']
+    if not all(field in game_data for field in required_fields):
+        return False
+    
+    # Validate current_player
+    if game_data['current_player'] not in ['X', 'O']:
+        return False
+    
+    # Validate game_status
+    valid_statuses = ['playing', 'won', 'draw', 'quit']
+    if game_data['game_status'] not in valid_statuses:
+        return False
+    
+    # Validate difficulty
+    if game_data['difficulty'] not in ['easy', 'medium', 'hard']:
+        return False
+    
+    # Validate board structure
+    board = game_data['board']
+    if not isinstance(board, list) or len(board) != 3:
+        return False
+    
+    for row in board:
+        if not isinstance(row, list) or len(row) != 3:
+            return False
+        for cell in row:
+            if cell not in ['', 'X', 'O']:
+                return False
+    
+    return True
+
+
 @game_bp.route('/new', methods=['POST'])
 def new_game():
     """
@@ -25,9 +136,24 @@ def new_game():
         JSON response with game state
     """
     try:
-        # Get and validate JSON input
+        # Get and validate JSON input with size limits
         try:
+            # Check request size first
+            if request.content_length and request.content_length > 1024:  # 1KB limit
+                return jsonify({
+                    'error': 'Request too large',
+                    'message': 'Request body exceeds maximum size of 1KB'
+                }), 413
+            
             raw_data = request.get_json()
+            
+            # Protect against JSON bombs (deep nesting)
+            if raw_data and _check_json_depth(raw_data) > 10:
+                return jsonify({
+                    'error': 'Invalid JSON structure',
+                    'message': 'JSON nesting too deep (max 10 levels)'
+                }), 400
+                
         except Exception as e:
             return jsonify({
                 'error': 'Invalid JSON',
@@ -83,6 +209,15 @@ def get_game_state():
                 'message': 'Please start a new game first'
             }), 404
         
+        # Validate session data integrity
+        if not _validate_session_game_data(game_data):
+            # Clear corrupted session data
+            session.pop('game', None)
+            return jsonify({
+                'error': 'Invalid game data',
+                'message': 'Game session corrupted. Please start a new game.'
+            }), 400
+        
         game = TicTacToeGame.from_dict(game_data)
         
         return jsonify({
@@ -137,28 +272,31 @@ def make_move():
                 'message': 'Both row and col are required'
             }), 400
         
+        # Validate coordinates with overflow protection
         try:
-            row = int(data['row'])
-            col = int(data['col'])
-        except (ValueError, TypeError):
+            row, col = _validate_coordinates(data['row'], data['col'])
+        except ValueError as e:
             return jsonify({
                 'error': 'Invalid move coordinates',
-                'message': 'Row and col must be integers between 0 and 2'
+                'message': str(e)
             }), 400
         
-        if not (0 <= row <= 2 and 0 <= col <= 2):
-            return jsonify({
-                'error': 'Invalid move coordinates',
-                'message': 'Row and col must be between 0 and 2'
-            }), 400
-        
-        # Get current game
+        # Get current game with validation
         game_data = session.get('game')
         if not game_data:
             return jsonify({
                 'error': 'No active game',
                 'message': 'Please start a new game first'
             }), 404
+        
+        # Validate session data integrity
+        if not _validate_session_game_data(game_data):
+            # Clear corrupted session data
+            session.pop('game', None)
+            return jsonify({
+                'error': 'Invalid game data',
+                'message': 'Game session corrupted. Please start a new game.'
+            }), 400
         
         game = TicTacToeGame.from_dict(game_data)
         
@@ -242,17 +380,38 @@ def reset_game():
         JSON response with reset game state
     """
     try:
-        # Get current game or create new one
+        # Get current game or create new one with validation
         game_data = session.get('game')
         if game_data:
-            game = TicTacToeGame.from_dict(game_data)
-            current_difficulty = game.difficulty
+            # Validate session data integrity
+            if not _validate_session_game_data(game_data):
+                # Clear corrupted session data and use default
+                session.pop('game', None)
+                current_difficulty = 'medium'
+            else:
+                game = TicTacToeGame.from_dict(game_data)
+                current_difficulty = game.difficulty
         else:
             current_difficulty = 'medium'
         
-        # Check for new difficulty
+        # Check for new difficulty with JSON bomb protection
         try:
+            # Check request size first
+            if request.content_length and request.content_length > 1024:  # 1KB limit
+                return jsonify({
+                    'error': 'Request too large',
+                    'message': 'Request body exceeds maximum size of 1KB'
+                }), 413
+            
             raw_data = request.get_json()
+            
+            # Protect against JSON bombs (deep nesting)
+            if raw_data and _check_json_depth(raw_data) > 10:
+                return jsonify({
+                    'error': 'Invalid JSON structure',
+                    'message': 'JSON nesting too deep (max 10 levels)'
+                }), 400
+                
         except Exception as e:
             return jsonify({
                 'error': 'Invalid JSON',
