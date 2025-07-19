@@ -251,3 +251,7 @@ Always specify exception types - bare `except:` masks serious errors like Keyboa
 3. **Environment variables** - For environment differences
 
 This reference prioritizes coding assistant autonomy while providing safety nets for complex scenarios. Focus on the decision frameworks and error recovery patterns when encountering situations not explicitly covered.
+
+### Action notes
+
+Always read PLANNING.md at the start of every new conversation, check TASKS.md before starting your work, mark completed tasks to TASKS.md immediately, and add newly discovered tasks to TASKS.md when found.

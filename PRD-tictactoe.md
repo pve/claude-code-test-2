@@ -66,7 +66,6 @@ The current Flask application provides basic web functionality but lacks interac
 - Current player indicator
 - Game status messages (win/lose/draw)
 - Score display (games won/lost/drawn)
-- Difficulty selector
 
 ### Technical Requirements
 
@@ -284,16 +283,6 @@ tests/
 - Computer responds with its move immediately
 - Game detects win/lose/draw conditions correctly
 - I can start a new game at any time
-
-#### US2: Choose Difficulty Level
-**As a** user  
-**I want to** select different difficulty levels  
-**So that** I can adjust the challenge to my skill level
-
-**Acceptance Criteria**:
-- Easy mode: Computer makes random valid moves
-- Medium mode: Computer blocks obvious wins
-- Hard mode: Computer plays optimally (never loses)
 
 #### US3: Track Game Progress
 **As a** user  
