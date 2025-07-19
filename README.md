@@ -241,7 +241,7 @@ PYTHONPATH=. uv run pytest -m integration -v
 PYTHONPATH=. uv run pytest -m e2e -v
 
 # Run full test suite with coverage
-PYTHONPATH=. uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=70
+PYTHONPATH=. uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=95
 ```
 
 ### Environment Configuration

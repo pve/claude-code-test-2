@@ -21,6 +21,18 @@ def test_user_validation():
     # Invalid email
     user_invalid = User("Bob", "invalid-email")
     assert not user_invalid.is_valid()
+    
+    # Empty name
+    user_no_name = User("", "test@example.com")
+    assert not user_no_name.is_valid()
+    
+    # Empty email
+    user_no_email = User("Test User", "")
+    assert not user_no_email.is_valid()
+    
+    # Both empty
+    user_empty = User("", "")
+    assert not user_empty.is_valid()
 
 
 @pytest.mark.unit
@@ -28,3 +40,11 @@ def test_user_string_representation():
     """Test user string representation."""
     user = User("Alice", "alice@example.com")
     assert str(user) == "User(Alice, alice@example.com)"
+
+
+@pytest.mark.unit
+def test_user_to_dict():
+    """Test user dictionary conversion."""
+    user = User("Charlie", "charlie@example.com")
+    expected_dict = {"name": "Charlie", "email": "charlie@example.com"}
+    assert user.to_dict() == expected_dict

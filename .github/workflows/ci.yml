@@ -126,7 +126,7 @@ jobs:
         CI: true
     
     - name: Generate full coverage report
-      run: uv run pytest --cov=app --cov-report=html --cov-report=term-missing --cov-fail-under=70
+      run: uv run pytest --cov=app --cov-report=html --cov-report=term-missing --cov-fail-under=95
       env:
         PYTHONPATH: .
     

@@ -3,7 +3,7 @@ import os
 import pytest
 
 from app.utils.environment import get_environment_type, is_ci_environment
-from app.utils.validation import sanitize_input, validate_email
+from app.utils.validation import sanitize_input, validate_email, validate_string_length
 
 
 @pytest.mark.unit
@@ -77,3 +77,28 @@ def test_input_sanitization():
     # Test None and empty inputs
     assert sanitize_input(None) == ""
     assert sanitize_input("") == ""
+
+
+@pytest.mark.unit
+def test_sanitize_input_non_string():
+    """Test input sanitization with non-string inputs."""
+    # Test non-string input (should be converted to string)
+    assert sanitize_input(123) == "123"
+    assert sanitize_input(True) == "true"
+
+
+@pytest.mark.unit
+def test_validate_string_length():
+    """Test string length validation utility."""
+    # Test valid lengths
+    assert validate_string_length("hello", 0, 10) is True
+    assert validate_string_length("test", 4, 4) is True
+    assert validate_string_length("", 0, 5) is True
+    
+    # Test invalid lengths
+    assert validate_string_length("toolong", 0, 5) is False
+    assert validate_string_length("short", 10, 20) is False
+    
+    # Test non-string input
+    assert validate_string_length(123, 0, 10) is False
+    assert validate_string_length(None, 0, 10) is False
