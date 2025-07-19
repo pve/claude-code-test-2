@@ -113,7 +113,7 @@ def test_complete_game_flow(driver, live_server):
     new_game_btn.click()
     
     # Wait for game to start
-    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn!"))
+    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Game started!"))
     
     # Make the first move (click center cell)
     center_cell = driver.find_element(By.CSS_SELECTOR, '[data-row="1"][data-col="1"]')
@@ -159,7 +159,7 @@ def test_difficulty_selection(driver, live_server):
     new_game_btn.click()
     
     # Wait for game to start
-    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn!"))
+    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Game started!"))
     
     # Verify difficulty selector is disabled during game
     assert not driver.find_element(By.ID, "difficulty").is_enabled()
@@ -184,7 +184,7 @@ def test_game_controls(driver, live_server):
     new_game_btn.click()
     
     # Wait for game to start
-    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn!"))
+    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Game started!"))
     
     # Now reset and quit should be enabled
     assert reset_btn.is_enabled()
@@ -234,11 +234,11 @@ def test_error_handling(driver, live_server):
     new_game_btn = driver.find_element(By.ID, "new-game-btn")
     new_game_btn.click()
     
-    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Your turn"))
+    wait.until(EC.text_to_be_present_in_element((By.ID, "game-message"), "Game started!"))
     
     # Make a move
     center_cell.click()
-    wait.until(EC.text_to_be_present_in_element_locator((By.CSS_SELECTOR, '[data-row="1"][data-col="1"]'), "X"))
+    wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, '[data-row="1"][data-col="1"]'), "X"))
     
     # Try to click same cell again
     center_cell.click()

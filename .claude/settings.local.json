@@ -44,7 +44,8 @@
       "Bash(PYTHONPATH=. uv run python -c:* )",
       "Bash(PYTHONPATH=. uv run python -c \"\nfrom app import create_app\napp = create_app()\nprint(''Flask app created successfully!'')\nprint(''Available routes:'')\nfor rule in app.url_map.iter_rules():\n    if rule.endpoint != ''static'':\n        print(f''  {rule.rule} -> {rule.endpoint}'')\n\")",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(PYTHONPATH=. uv run python:*)"
     ],
     "deny": []
   }

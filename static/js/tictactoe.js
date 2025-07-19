@@ -11,6 +11,7 @@ class TicTacToeGame {
         
         this.initializeElements();
         this.bindEvents();
+        this.updateButtons();  // Initialize button states
         this.showMessage('Welcome! Start a new game to begin.');
     }
 
