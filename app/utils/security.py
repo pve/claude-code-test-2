@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 
 
 def configure_security_headers(app: Flask):
@@ -27,7 +27,7 @@ def configure_security_headers(app: Flask):
                 "max-age=31536000; includeSubDomains"
             )
 
-        # Content Security Policy
+        # Content Security Policy (stricter)
         csp = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline'; "
@@ -35,12 +35,40 @@ def configure_security_headers(app: Flask):
             "img-src 'self' data:; "
             "font-src 'self'; "
             "connect-src 'self'; "
-            "frame-ancestors 'none';"
+            "frame-ancestors 'none'; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self';"
         )
         response.headers["Content-Security-Policy"] = csp
 
         # Referrer Policy
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        
+        # Additional security headers
+        response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+        
+        # Permissions Policy (Feature Policy replacement)
+        permissions_policy = (
+            "geolocation=(), "
+            "microphone=(), "
+            "camera=(), "
+            "payment=(), "
+            "usb=(), "
+            "accelerometer=(), "
+            "gyroscope=(), "
+            "magnetometer=()"
+        )
+        response.headers["Permissions-Policy"] = permissions_policy
+        
+        # Cache control for sensitive endpoints
+        if request.path.startswith('/api/'):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
 
         return response
 
