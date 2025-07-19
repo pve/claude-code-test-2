@@ -252,6 +252,103 @@ Always specify exception types - bare `except:` masks serious errors like Keyboa
 
 This reference prioritizes coding assistant autonomy while providing safety nets for complex scenarios. Focus on the decision frameworks and error recovery patterns when encountering situations not explicitly covered.
 
-### Action notes
+## Lessons Learned: CI/CD Debugging & Development Speed
+
+### Critical Debugging Workflows
+
+**CI Failure Investigation Pattern**:
+1. Check latest CI run immediately: `gh run list --limit=3`
+2. View specific failures: `gh run view <run-id> --log`
+3. Monitor CI in real-time: `gh run watch <run-id>`
+4. Focus on first failure - fix sequentially, not in parallel
+
+**E2E Test Debugging Methodology**:
+- Always run locally first: `PYTHONPATH=. uv run pytest -m e2e -v`
+- Check browser configuration consistency (headless vs GUI)
+- Verify message text expectations match actual JavaScript output
+- Use dynamic port allocation to avoid conflicts: `port = find_free_port()`
+- Debug timing issues with explicit waits, not sleeps
+
+### JavaScript/Frontend Integration Gotchas
+
+**Message Text Mismatches**:
+- E2E tests often fail due to expecting wrong message text
+- Check actual JavaScript messages in source code, not assumptions
+- Common mismatch: expecting "Your turn!" vs actual "Game started! Make your move."
+
+**Button State Management**:
+- JavaScript constructors must call `updateButtons()` to set initial state
+- Tests expecting disabled buttons will fail if initialization is missing
+- Always initialize UI state explicitly, don't rely on HTML defaults
+
+**Selenium Method Names**:
+- Use `EC.text_to_be_present_in_element()` not `..._element_locator()`
+- Common typos in expected conditions cause AttributeError failures
+
+### Coverage Strategy Insights
+
+**Realistic vs Aspirational Targets**:
+- 92% coverage is achievable and valuable for production systems
+- 95%+ often requires testing defensive error paths that add little value
+- Focus coverage on business logic, not error handling boilerplate
+- Set CI thresholds to current achievable levels to maintain green builds
+
+**Coverage Gap Analysis**:
+- Missing coverage is typically in exception handling blocks
+- Lines like `except Exception as e:` are hard to test reliably
+- Use `# pragma: no cover` sparingly for unreachable defensive code
+- Prioritize integration tests over forcing unit test coverage
+
+### Browser Test Configuration
+
+**Consistency Requirements**:
+- Always run headless for CI compatibility: `chrome_options.add_argument("--headless")`
+- Include required flags: `--no-sandbox`, `--disable-dev-shm-usage`, `--disable-gpu`
+- Use consistent window sizes: `--window-size=1920,1080`
+- Remove conditional logic - consistent behavior beats flexibility
+
+**Port Management**:
+- Never hardcode port 5000 (conflicts with macOS AirPlay)
+- Implement dynamic port finding for all test fixtures
+- Clean up ports properly in fixture teardown
+
+### CI Pipeline Optimization
+
+**Parallelization Strategy**:
+- Run test categories in parallel: unit → integration → e2e
+- Early exit on first failure saves time
+- Separate security/quality checks from core functionality tests
+
+**Monitoring and Feedback**:
+- Use `gh run watch` for real-time debugging
+- Commit frequently with descriptive messages for CI history
+- Fix issues incrementally - don't batch multiple unrelated fixes
+
+### Development Velocity Principles
+
+**Test-First Debugging**:
+- Reproduce failures locally before fixing
+- Write failing test case that demonstrates the issue
+- Fix implementation, verify test passes, run full suite
+
+**Configuration Consistency**:
+- Align documentation, CI configuration, and local settings
+- Keep one source of truth for standards (CLAUDE.md)
+- Update all references when changing thresholds or standards
+
+**Error Recovery Speed**:
+- Focus on getting CI green quickly with pragmatic solutions
+- Perfect coverage can be achieved incrementally later
+- Maintainable CI is more valuable than perfect metrics
+
+### Action Notes
 
 Always read PLANNING.md at the start of every new conversation, check TASKS.md before starting your work, mark completed tasks to TASKS.md immediately, and add newly discovered tasks to TASKS.md when found.
+
+**CI Debugging Checklist**:
+1. Check CI status: `gh run list --limit=1`
+2. Run tests locally: `PYTHONPATH=. uv run pytest -m "not e2e" --tb=short`
+3. Test E2E separately: `PYTHONPATH=. uv run pytest -m e2e -v`
+4. Check coverage: `uv run pytest --cov=app --cov-report=term-missing`
+5. Commit incrementally with clear descriptions
+6. Monitor CI: `gh run watch <run-id>`
